@@ -11,7 +11,7 @@
 ---
 
 ## 📋 Sobre o Projeto
-Este repositório contém o firmware do sistema de visão do **RoadVision-R**. Diferente de sistemas que transmitem vídeo via Wi-Fi para processamento externo (o que gera latência), este código realiza a **análise vetorial de cores diretamente no microcontrolador**.
+Este repositório contém o firmware do sistema de visão do **Road Vision Car**. Diferente de sistemas que transmitem vídeo via Wi-Fi para processamento externo (o que gera latência), este código realiza a **análise vetorial de cores diretamente no microcontrolador**.
 
 O sistema captura frames, converte o formato nativo RGB565 para o espaço de cores HSV e calcula a média cromática de uma Região de Interesse (ROI) central, permitindo tomadas de decisão em milissegundos.
 
@@ -74,7 +74,7 @@ O sistema detecta a cor baseada no ângulo do **Hue (0-360°)**. Abaixo está a 
 
 ### Pré-requisitos
 1.  **Arduino IDE** com suporte a ESP32 instalado.
-2.  Adaptador **FTDI (USB-Serial)**.
+2.  Adaptador **BASE MB (USB-Serial)**.
 
 ### Passo a Passo
 1.  Selecione a placa: **AI Thinker ESP32-CAM**.
@@ -88,8 +88,10 @@ O sistema detecta a cor baseada no ângulo do **Hue (0-360°)**. Abaixo está a 
 
 ## 🤝 Autores
 
-* **[Seu Nome]** - *Desenvolvimento de Firmware*
-* **Equipe RoadVision-R** - *Integração e Hardware*
+* **Joaquim Renato de Oliveira Nogueira** - *Desenvolvimento de Firmware*
+* **Emanuel Ferreira Viana** - *Documentação*
+* **Luiz Isaac Pereira Sampaio** - *Integração com Embarcados*
+* **Victor Almeida Marinho Rego** - *Viajou para o Maranhão...*
 * **IFCE** - *Instituto Federal do Ceará*
 
 ---
