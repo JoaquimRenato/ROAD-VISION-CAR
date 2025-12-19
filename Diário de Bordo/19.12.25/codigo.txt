@@ -1,4 +1,4 @@
-//codigo defeituoso. encontrar falha
+//codigo defeituoso. encontrar falha. oi
 
 #include "esp_camera.h"
 
