@@ -1,3 +1,5 @@
+//codigo defeituoso. encontrar falha
+
 #include "esp_camera.h"
 
 // ================== DEFINES ==================
