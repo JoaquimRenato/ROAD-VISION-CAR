@@ -1,0 +1,13 @@
+REGISTROS:
+  - Dificuldades na utilização da câmera: falha indefinida no código
+  - Criação de um Drive para o compartilhamento de arquivos, caso necessário
+  - Organização simples do GitHub
+  
+  IDEIAS:
+    - Utilização de Python para o processamento de imagens (artigo de referência encontrado e disponível no drive), juntamente da biblioteca opencv.
+    Isso talvez tornaria o código mais fácil, dada a quantidade de funções presentes nesse suporte, e na capacidade de evolução de processamento de
+    visão computacional do robô. Seríamos capaz de identificar obstáculos, por exemplo, com o python.
+    
+    E se visualizássemos a imagem fornecida pela câmera em mínima resolução, em escala de cinza/em preto e branco, e nos preocupássemos primeiro em
+    definir as bordas da linha e do circuito, para depois nos preocuparmos com as cores de partes específicas desse circuito?
+    - Estudar Convolução e filtro de Kerns (sugestão do Rogério)
