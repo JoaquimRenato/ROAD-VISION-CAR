@@ -126,6 +126,8 @@ void loop() {
   float somaS = 0;
   float somaV = 0;
   int cont = 0;
+  primeiro_preto = 0;
+  ultimo_preto = 0;
 
   for (int y = y_ini; y < y_fim; y++) {
     for (int x = 0; x < largura; x++) {
@@ -140,6 +142,11 @@ void loop() {
       float H, S, V;
       rgb2hsv(r, g, b, H, S, V);
 
+      if detectaCor(H,S,V) == "Preto"{
+        if primeiro_preto == 0;
+          primeiro_preto == 
+        
+      }
       somaH += H;
       somaS += S;
       somaV += V;
