@@ -26,6 +26,7 @@
 void rgb2hsv(uint8_t r, uint8_t g, uint8_t b,
              float &h, float &s, float &v) {
 
+
   float rf = r / 255.0;
   float gf = g / 255.0;
   float bf = b / 255.0;
