@@ -126,8 +126,8 @@ void loop() {
   float somaS = 0;
   float somaV = 0;
   int cont = 0;
-  primeiro_preto = 0;
-  ultimo_preto = 0;
+  int primeiro_preto = -1; // Adicionado o int para declarar a variável. Iniciar com -1, pois o 0 é um pixel válido pra espcam.
+  int ultimo_preto = -1; // Mesma coisa de cima
 
   for (int y = y_ini; y < y_fim; y++) {
     for (int x = 0; x < largura; x++) {
@@ -142,11 +142,13 @@ void loop() {
       float H, S, V;
       rgb2hsv(r, g, b, H, S, V);
 
-      if detectaCor(H,S,V) == "Preto"{
-        if primeiro_preto == 0;
-          primeiro_preto == 
-        
+      if (detectaCor(H,S,V) == "Preto") {  // Faltou o parêntesis e o espaço no if
+        if (primeiro_preto == -1) { //Alteração de 0 para -1
+          primeiro_preto == x; //Começo da linha
+        }
+      ultimo_preto == x;
       }
+      // Acumula os valores HSV de todos os pixels da faixa
       somaH += H;
       somaS += S;
       somaV += V;
@@ -156,20 +158,41 @@ void loop() {
 
   esp_camera_fb_return(fb);
 
+  // Cor média da faixa
   float Hmedio = somaH / cont;
   float Smedio = somaS / cont;
   float Vmedio = somaV / cont;
-
-  String cor = detectaCor(Hmedio, Smedio, Vmedio);
-
-  Serial.print("H: ");
+  String corDominante = detectaCor(Hmedio, Smedio, Vmedio);
+ 
+  Serial.print("Cor dominante na faixa: ");
+  Serial.print(corDominante);
+  Serial.print("  | H: ");
   Serial.print(Hmedio, 1);
   Serial.print("  S: ");
   Serial.print(Smedio, 2);
   Serial.print("  V: ");
-  Serial.print(Vmedio, 2);
-  Serial.print("  | Cor: ");
-  Serial.println(cor);
+  Serial.println(Vmedio, 2);
+
+ // Calculo do centro da linha
+  if (primeiro_preto != -1) {
+    int centro_linha  = (primeiro_preto + ultimo_preto) / 2;
+    int centro_imagem = largura / 2;  // Vai dar 80px pois a largura total é 160px
+    int erro = centro_linha - centro_imagem;
+
+    // - Direção do carro - 
+    // erro negativo = linha está para esquerda
+    // erro zero = linha no centro
+    // erro positivo = linha está para direita
+    if (erro < -15) {
+      Serial.println("VIRAR ESQUERDA   | erro: " + String(erro));
+    } else if (erro > 15) {
+      Serial.println("VIRAR DIREITA    | erro: " + String(erro));
+    } else {
+      Serial.println("SEGUIR EM FRENTE | erro: " + String(erro));
+    }
+  } else {
+    Serial.println("Linha não encontrada!");
+  }
 
   delay(50);
 }
