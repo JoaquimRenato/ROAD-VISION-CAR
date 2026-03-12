@@ -1,5 +1,3 @@
-//codigo defeituoso. encontrar falha. oi
-
 #include "esp_camera.h"
 
 // ================== DEFINES ==================
@@ -25,7 +23,6 @@
 // ================== RGB → HSV ==================
 void rgb2hsv(uint8_t r, uint8_t g, uint8_t b,
              float &h, float &s, float &v) {
-
 
   float rf = r / 255.0;
   float gf = g / 255.0;
@@ -62,12 +59,12 @@ String detectaCor(float H, float S, float V) {
   if (V > 0.85 && S < 0.20) return "Branco";
 
   if (H < 15 || H > 330) return "Vermelho";
-  if (H < 40)           return "Laranja";
-  if (H < 70)           return "Amarelo";
-  if (H < 170)          return "Verde";
-  if (H < 200)          return "Ciano";
-  if (H < 240)          return "Azul";
-  if (H < 310)          return "Roxo";
+  if (H < 40)            return "Laranja";
+  if (H < 70)            return "Amarelo";
+  if (H < 170)           return "Verde";
+  if (H < 200)           return "Ciano";
+  if (H < 240)           return "Azul";
+  if (H < 310)           return "Roxo";
 
   return "Indefinido";
 }
@@ -96,14 +93,29 @@ void setup() {
   config.pin_pwdn     = PWDN_GPIO_NUM;
   config.pin_reset    = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
-  config.pixel_format = PIXFORMAT_RGB565;
-  config.frame_size   = FRAMESIZE_QQVGA; // 160x120
+
+  // ✅ CORREÇÃO DO ERRO FB-SIZE:
+  // O AI-Thinker não consegue inicializar RGB565 direto na PSRAM.
+  // A solução é inicializar em JPEG (estável) e trocar para RGB565 depois.
+  config.pixel_format = PIXFORMAT_JPEG;
+  config.frame_size   = FRAMESIZE_QQVGA;
+  config.jpeg_quality = 12;
   config.fb_count     = 1;
+  config.fb_location  = CAMERA_FB_IN_PSRAM;
 
   if (esp_camera_init(&config) != ESP_OK) {
-    Serial.println("Falha ao iniciar câmera");
+    Serial.println("❌ Falha ao iniciar câmera");
     while (true);
   }
+
+  // ✅ Após inicializar, muda o formato para RGB565
+  sensor_t *s = esp_camera_sensor_get();
+  s->set_pixformat(s, PIXFORMAT_RGB565);
+  s->set_framesize(s, FRAMESIZE_QQVGA);
+
+  delay(500); // aguarda estabilizar
+
+  Serial.println("✅ Câmera iniciada com sucesso!");
 }
 
 // ================== LOOP ==================
@@ -122,12 +134,15 @@ void loop() {
   int y_ini = (altura / 2) - (FAIXA / 2);
   int y_fim = y_ini + FAIXA;
 
+  // ===== VARIÁVEIS DE RASTREAMENTO =====
+  int primeiro_preto = -1;  // -1 = ainda não encontrou nenhum pixel preto
+  int ultimo_preto   = -1;
+
+  // Variáveis para calcular a cor média da faixa (útil para linhas coloridas)
   float somaH = 0;
   float somaS = 0;
   float somaV = 0;
   int cont = 0;
-  int primeiro_preto = -1; // Adicionado o int para declarar a variável. Iniciar com -1, pois o 0 é um pixel válido pra espcam.
-  int ultimo_preto = -1; // Mesma coisa de cima
 
   for (int y = y_ini; y < y_fim; y++) {
     for (int x = 0; x < largura; x++) {
@@ -142,12 +157,14 @@ void loop() {
       float H, S, V;
       rgb2hsv(r, g, b, H, S, V);
 
-      if (detectaCor(H,S,V) == "Preto") {  // Faltou o parêntesis e o espaço no if
-        if (primeiro_preto == -1) { //Alteração de 0 para -1
-          primeiro_preto == x; //Começo da linha
+      // Rastreia a posição da linha preta
+      if (detectaCor(H, S, V) == "Preto") {
+        if (primeiro_preto == -1) {
+          primeiro_preto = x;
         }
-      ultimo_preto == x;
+        ultimo_preto = x;
       }
+
       // Acumula os valores HSV de todos os pixels da faixa
       somaH += H;
       somaS += S;
@@ -158,13 +175,13 @@ void loop() {
 
   esp_camera_fb_return(fb);
 
-  // Cor média da faixa
+  // ===== COR MÉDIA DA FAIXA (para linhas coloridas no futuro) =====
   float Hmedio = somaH / cont;
   float Smedio = somaS / cont;
   float Vmedio = somaV / cont;
   String corDominante = detectaCor(Hmedio, Smedio, Vmedio);
- 
-  Serial.print("Cor dominante na faixa: ");
+
+  Serial.print("🎨 Cor dominante na faixa: ");
   Serial.print(corDominante);
   Serial.print("  | H: ");
   Serial.print(Hmedio, 1);
@@ -173,25 +190,33 @@ void loop() {
   Serial.print("  V: ");
   Serial.println(Vmedio, 2);
 
- // Calculo do centro da linha
+  // ===== CALCULA O CENTRO DA LINHA =====
   if (primeiro_preto != -1) {
     int centro_linha  = (primeiro_preto + ultimo_preto) / 2;
-    int centro_imagem = largura / 2;  // Vai dar 80px pois a largura total é 160px
-    int erro = centro_linha - centro_imagem;
+    int centro_imagem = largura / 2;  // = 80 para 160px de largura
+    int erro          = centro_linha - centro_imagem;
 
-    // - Direção do carro - 
-    // erro negativo = linha está para esquerda
-    // erro zero = linha no centro
-    // erro positivo = linha está para direita
+    // ===== DECIDE DIREÇÃO =====
+    // erro negativo = linha à esquerda
+    // erro zero     = linha no centro
+    // erro positivo = linha à direita
     if (erro < -15) {
-      Serial.println("VIRAR ESQUERDA   | erro: " + String(erro));
+      Serial.println("⬅ VIRAR ESQUERDA   | erro: " + String(erro));
     } else if (erro > 15) {
-      Serial.println("VIRAR DIREITA    | erro: " + String(erro));
+      Serial.println("➡ VIRAR DIREITA    | erro: " + String(erro));
     } else {
-      Serial.println("SEGUIR EM FRENTE | erro: " + String(erro));
+      Serial.println("⬆ SEGUIR EM FRENTE | erro: " + String(erro));
     }
+
+    Serial.print("   Linha: pixel ");
+    Serial.print(primeiro_preto);
+    Serial.print(" até ");
+    Serial.print(ultimo_preto);
+    Serial.print(" | Centro da linha: ");
+    Serial.println(centro_linha);
+
   } else {
-    Serial.println("Linha não encontrada!");
+    Serial.println("⚠ LINHA NÃO ENCONTRADA — parar ou buscar");
   }
 
   delay(50);
